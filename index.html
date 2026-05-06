@@ -1,1 +1,208 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CINEPHILE - සිනමා ලෝකය</title>
+    <style>
+        /* CSS කොටස - වෙබ් අඩවියේ පෙනුම */
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0b0b0b;
+            color: white;
+        }
 
+        header {
+            background-color: #141414;
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 3px solid #e50914;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #e50914;
+            letter-spacing: 8px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 10px rgba(229, 9, 20, 0.5);
+        }
+
+        .search-box {
+            margin-top: 15px;
+        }
+
+        .search-box input {
+            padding: 15px 25px;
+            width: 350px;
+            border-radius: 30px;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .search-box button {
+            padding: 15px 30px;
+            border-radius: 30px;
+            border: none;
+            background-color: #e50914;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-left: -50px; /* Input එක ඇතුලට බොත්තම ගැනීමට */
+            transition: 0.3s;
+        }
+
+        .search-box button:hover {
+            background-color: #b20710;
+        }
+
+        .container { padding: 40px 20px; max-width: 1200px; margin: auto; }
+
+        #heading {
+            border-left: 5px solid #e50914;
+            padding-left: 15px;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+        }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+        }
+
+        .movie-card {
+            background-color: #1f1f1f;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .movie-card img {
+            width: 100%;
+            height: 330px;
+            object-fit: cover;
+        }
+
+        .movie-card-info {
+            padding: 15px;
+        }
+
+        .movie-card h3 {
+            font-size: 1rem;
+            margin: 0 0 10px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rating {
+            display: inline-block;
+            background: #333;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: gold;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">CINEPHILE</div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="චිත්‍රපටයක නම ඇතුළත් කරන්න...">
+            <button onclick="searchMovies()">සොයන්න</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 id="heading">ජනප්‍රිය චිත්‍රපට</h2>
+        <div id="movieGrid" class="movie-grid">
+            <p>චිත්‍රපට පූරණය වෙමින් පවතී (Loading)...</p>
+        </div>
+    </div>
+
+    <script>
+        /* JavaScript කොටස - API සම්බන්ධ කිරීම */
+        
+        // 🚨 ඔබේ TMDB API Key එක මෙහි ඇතුළත් කරන්න 🚨
+        const API_KEY = 'ඔබේ_API_KEY_එක_මෙතනට_දමන්න'; 
+        const BASE_URL = 'https://api.themoviedb.org/3';
+        const IMG_URL = 'https://image.tmdb.org/t/p/w500';
+
+        // වෙබ් අඩවිය Load වූ විගස ක්‍රියාත්මක වේ
+        window.onload = () => {
+            if(API_KEY === 'ඔබේ_API_KEY_එක_මෙතනට_දමන්න') {
+                document.getElementById('movieGrid').innerHTML = "<h3 style='color:orange;'>කරුණාකර API Key එක ඇතුළත් කරන්න.</h3>";
+                return;
+            }
+            getMovies(`${BASE_URL}/discover/movie?sort_by=popularity.desc&api_key=${API_KEY}`);
+        };
+
+        async function getMovies(url) {
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                if(data.results.length > 0) {
+                    showMovies(data.results);
+                } else {
+                    document.getElementById('movieGrid').innerHTML = "<h3>කිසිදු චිත්‍රපටයක් හමු වූයේ නැත.</h3>";
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        function showMovies(movies) {
+            const movieGrid = document.getElementById('movieGrid');
+            movieGrid.innerHTML = '';
+
+            movies.forEach(movie => {
+                const { title, poster_path, vote_average, release_date } = movie;
+                const movieEl = document.createElement('div');
+                movieEl.classList.add('movie-card');
+
+                movieEl.innerHTML = `
+                    <img src="${poster_path ? IMG_URL + poster_path : 'https://via.placeholder.com/500x750?text=No+Image'}" alt="${title}">
+                    <div class="movie-card-info">
+                        <h3>${title}</h3>
+                        <div class="rating">⭐ ${vote_average}</div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">${release_date}</p>
+                    </div>
+                `;
+                movieGrid.appendChild(movieEl);
+            });
+        }
+
+        function searchMovies() {
+            const searchTerm = document.getElementById('searchInput').value;
+            if(searchTerm && searchTerm.trim() !== "") {
+                document.getElementById('heading').innerText = `"${searchTerm}" සඳහා ප්‍රතිඵල...`;
+                getMovies(`${BASE_URL}/search/movie?api_key=${API_KEY}&query=${searchTerm}`);
+            }
+        }
+
+        // Enter Key එක එබූ විට සෙවීමට
+        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchMovies();
+            }
+        });
+    </script>
+</body>
+  </html>
