@@ -1,304 +1,141 @@
-   <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="si">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CINEPHILE Premium</title>
+    <title>CINEPHILE - SINHALA SUB</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #e50914; --bg: #080808; --card-bg: #141414; }
-        body { margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg); color: white; }
+        body { margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg); color: white; overflow-x: hidden; }
         
-        nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; background: rgba(0,0,0,0.9); position: sticky; top: 0; z-index: 1000; }
-        .logo { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
-        
-        .main-content { padding: 30px 5%; }
-        .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 25px; }
-        
-        .movie-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; transition: 0.4s; cursor: pointer; position: relative; }
-        .movie-card:hover { transform: scale(1.05); }
-        .movie-card img { width: 100%; height: 270px; object-fit: cover; }
-        .movie-info { padding: 10px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); position: absolute; bottom: 0; width: 100%; }
+        /* Navbar */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 5%; background: #000; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #222; }
+        .logo { font-size: 1.6rem; font-weight: bold; color: var(--primary); letter-spacing: 1px; }
+        .search-box { background: #222; padding: 6px 15px; border-radius: 20px; display: flex; align-items: center; }
+        .search-box input { background: transparent; border: none; color: white; outline: none; width: 140px; font-size: 0.9rem; }
 
-        /* Movie Details Modal */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; overflow-y: auto; }
-        .modal-content { position: relative; margin: 2% auto; width: 90%; max-width: 900px; background: #111; border-radius: 15px; padding: 20px; box-sizing: border-box; }
-        .close-btn { position: absolute; top: 10px; right: 20px; font-size: 40px; color: white; cursor: pointer; }
+        /* පින්තූරයේ තිබූ මෙනු එක (Navigation Menu) */
+        .navigation-menu { padding: 20px 5%; display: flex; flex-direction: column; align-items: center; gap: 15px; background: #0c0c0c; border-bottom: 1px solid #1a1a1a; }
         
-        .movie-details-flex { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; }
-        .details-img { width: 250px; border-radius: 10px; }
-        .details-text { flex: 1; min-width: 300px; }
-        .details-text h2 { margin-top: 0; color: var(--primary); }
-        .details-text p { color: #ccc; line-height: 1.6; }
+        .type-tabs { display: flex; gap: 12px; }
+        .type-btn { background: #222; color: #fff; border: none; padding: 12px 35px; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: 0.3s; }
+        .type-btn.active { background: var(--primary); box-shadow: 0 0 20px rgba(229, 9, 20, 0.4); }
 
-        .player-wrapper { width: 100%; border-radius: 10px; overflow: hidden; background: #000; }
-        iframe { width: 100%; height: 450px; border: none; }
+        .genre-scroll { display: flex; gap: 10px; overflow-x: auto; width: 100%; justify-content: center; padding: 5px 0; scrollbar-width: none; }
+        .genre-scroll::-webkit-scrollbar { display: none; }
+        .genre-btn { background: #1a1a1a; border: 1px solid #333; color: #ccc; padding: 8px 18px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .genre-btn:hover, .genre-btn.active { border-color: var(--primary); color: white; background: rgba(229, 9, 20, 0.1); }
+
+        /* Movie Grid (කුඩා පෝස්ටර්) */
+        .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 15px; padding: 25px 5% 50px; }
+        .movie-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; position: relative; cursor: pointer; transition: 0.4s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .movie-card:hover { transform: translateY(-8px); box-shadow: 0 8px 25px rgba(229, 9, 20, 0.2); }
+        .movie-card img { width: 100%; height: 205px; object-fit: cover; }
+        .card-info { padding: 10px; font-size: 0.8rem; text-align: center; font-weight: 500; }
+        .sub-badge { position: absolute; top: 8px; left: 8px; background: #00b894; color: white; font-size: 0.65rem; padding: 3px 8px; border-radius: 5px; font-weight: bold; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+
+        /* Modal & Player */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.97); z-index: 2000; overflow-y: auto; }
+        .modal-content { margin: 2% auto; width: 95%; max-width: 900px; background: #111; border-radius: 20px; padding: 25px; position: relative; border: 1px solid #333; }
+        .close-btn { position: absolute; top: 15px; right: 25px; font-size: 40px; cursor: pointer; color: #fff; line-height: 1; }
+        
+        .player-selector { display: flex; gap: 10px; margin: 20px 0; }
+        .p-btn { background: #333; color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; flex: 1; font-weight: bold; font-size: 0.9rem; transition: 0.3s; }
+        .p-btn.active { background: var(--primary); }
+
+        iframe { width: 100%; height: 480px; border: none; border-radius: 12px; background: #000; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+
+        @media (max-width: 600px) { 
+            iframe { height: 260px; } 
+            .movie-grid { grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); }
+            .type-btn { padding: 10px 25px; font-size: 0.9rem; }
+        }
     </style>
 </head>
 <body>
 
     <nav>
         <div class="logo">CINEPHILE</div>
-        <div style="background:rgba(255,255,255,0.1); padding:5px 15px; border-radius:20px;">
-            <input type="text" id="searchInput" placeholder="චිත්‍රපට සොයන්න..." style="background:none; border:none; color:white; outline:none;">
-            <button onclick="searchMovies()" style="background:none; border:none; color:white; cursor:pointer;">🔍</button>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="සොයන්න...">
+            <button onclick="searchMovies()" style="background:none; border:none; color:white; cursor:pointer; font-size: 1.1rem;">🔍</button>
         </div>
     </nav>
 
-    <div class="main-content">
-        <h2 id="gridTitle">දැන් ප්‍රදර්ශනය වන චිත්‍රපට</h2>
-        <div id="movieGrid" class="movie-grid"></div>
+    <div class="navigation-menu">
+        <div class="type-tabs">
+            <button class="type-btn active" id="movieTab" onclick="switchType('movie')">Movies</button>
+            <button class="type-btn" id="tvTab" onclick="switchType('tv')">TV Series</button>
+        </div>
+        <div class="genre-scroll">
+            <button class="genre-btn active" onclick="fetchMovies()">All</button>
+            <button class="genre-btn" onclick="filterGenre(28)">Action</button>
+            <button class="genre-btn" onclick="filterGenre(35)">Comedy</button>
+            <button class="genre-btn" onclick="filterGenre(27)">Horror</button>
+            <button class="genre-btn" onclick="filterGenre(10749)">Romance</button>
+            <button class="genre-btn" onclick="filterGenre(878)">Sci-Fi</button>
+            <button class="genre-btn" onclick="filterGenre(16)">Animation</button>
+        </div>
     </div>
+
+    <div class="movie-grid" id="movieGrid"></div>
 
     <div id="movieModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <div id="modalDetails"></div>
-            <div class="player-wrapper" id="playerContainer"></div>
+            <div id="modalHeader"></div>
+            
+            <div class="player-selector">
+                <button id="csBtn" class="p-btn active" onclick="setPlayer('cs')">PlayerLK (Sinhala Sub)</button>
+                <button id="evoBtn" class="p-btn" onclick="setPlayer('evo')">Evo Player</button>
+            </div>
+            
+            <div id="playerWrapper"></div>
         </div>
     </div>
 
     <script>
-        const API_KEY = '58d21bb219448b8bbd868e6440bf49f9'; 
-        const BASE_URL = 'https://api.themoviedb.org/3';
+        const API_KEY = '58d21bb219448b8bbd868e6440bf49f9';
         const IMG_URL = 'https://image.tmdb.org/t/p/w500';
+        let currentType = 'movie';
+        let currentID = '';
 
-        window.onload = () => getMovies(`${BASE_URL}/discover/movie?sort_by=popularity.desc&api_key=${API_KEY}`);
+        window.onload = () => fetchMovies();
 
-        async function getMovies(url) {
+        function switchType(type) {
+            currentType = type;
+            document.getElementById('movieTab').classList.toggle('active', type === 'movie');
+            document.getElementById('tvTab').classList.toggle('active', type === 'tv');
+            fetchMovies();
+        }
+
+        async function fetchMovies(customUrl = '') {
+            const url = customUrl || `https://api.themoviedb.org/3/discover/${currentType}?api_key=${API_KEY}&sort_by=popularity.desc`;
             const res = await fetch(url);
             const data = await res.json();
-            showMovies(data.results);
+            displayMovies(data.results);
         }
 
-        function showMovies(movies) {
-            const movieGrid = document.getElementById('movieGrid');
-            movieGrid.innerHTML = '';
-            movies.forEach(movie => {
-                const movieEl = document.createElement('div');
-                movieEl.classList.add('movie-card');
-                movieEl.onclick = () => openModal(movie);
-                movieEl.innerHTML = `
-                    <img src="${movie.poster_path ? IMG_URL + movie.poster_path : 'https://via.placeholder.com/300x450'}" alt="${movie.title}">
-                    <div class="movie-info">
-                        <h3>${movie.title}</h3>
-                        <span style="color:gold">⭐ ${movie.vote_average.toFixed(1)}</span>
-                    </div>
+        function displayMovies(movies) {
+            const grid = document.getElementById('movieGrid');
+            grid.innerHTML = '';
+            movies.forEach(m => {
+                const title = m.title || m.name;
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                card.onclick = () => openModal(m);
+                card.innerHTML = `
+                    <div class="sub-badge">SINHALA SUB</div>
+                    <img src="${m.poster_path ? IMG_URL + m.poster_path : 'https://via.placeholder.com/200x300'}" alt="${title}">
+                    <div class="card-info">${title}</div>
                 `;
-                movieGrid.appendChild(movieEl);
+                grid.appendChild(card);
             });
         }
 
-        // Modal එක විවෘත කරන Function එක (විස්තර + Player)
-        function openModal(movie) {
-            const modal = document.getElementById('movieModal');
-            const detailsContainer = document.getElementById('modalDetails');
-            const playerContainer = document.getElementById('playerContainer');
-
-            // චිත්‍රපට විස්තර සිංහලට පරිවර්තනය නොවූවත් TMDB වෙතින් ලැබෙන ඉංග්‍රීසි විස්තරය පෙන්වයි
-            detailsContainer.innerHTML = `
-                <div class="movie-details-flex">
-                    <img src="${IMG_URL + movie.poster_path}" class="details-img">
-                    <div class="details-text">
-                        <h2>${movie.title}</h2>
-                        <p><strong>නිකුත් වූ දිනය:</strong> ${movie.release_date}</p>
-                        <p><strong>මනාපය:</strong> ⭐ ${movie.vote_average.toFixed(1)}</p>
-                        <p>${movie.overview}</p>
-                        <p style="color:var(--primary); font-weight:bold;">දැන් පහතින් නරඹන්න ↓</p>
-                    </div>
-                </div>
-            `;
-
-            playerContainer.innerHTML = `<iframe src="https://vidsrc.me/embed/movie?tmdb=${movie.id}" allowfullscreen></iframe>`;
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            document.getElementById('movieModal').style.display = 'none';
-            document.getElementById('playerContainer').innerHTML = '';
-            document.body.style.overflow = 'auto';
-        }
-
-        function searchMovies() {
-            const term = document.getElementById('searchInput').value;
-            if(term) {
-                getMovies(`${BASE_URL}/search/movie?api_key=${API_KEY}&query=${term}`);
-                document.getElementById('gridTitle').innerText = `සෙවුම් ප්‍රතිඵල: ${term}`;
-            }
-        }
-    </script>
-</body>
-</html>
-
-
-        .search-box input {
-            padding: 15px 25px;
-            width: 350px;
-            border-radius: 30px;
-            border: none;
-            outline: none;
-            font-size: 1rem;
-        }
-
-        .search-box button {
-            padding: 15px 30px;
-            border-radius: 30px;
-            border: none;
-            background-color: #e50914;
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
-            margin-left: -50px; /* Input එක ඇතුලට බොත්තම ගැනීමට */
-            transition: 0.3s;
-        }
-
-        .search-box button:hover {
-            background-color: #b20710;
-        }
-
-        .container { padding: 40px 20px; max-width: 1200px; margin: auto; }
-
-        #heading {
-            border-left: 5px solid #e50914;
-            padding-left: 15px;
-            margin-bottom: 30px;
-            font-size: 1.8rem;
-        }
-
-        .movie-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 25px;
-        }
-
-        .movie-card {
-            background-color: #1f1f1f;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .movie-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-        }
-
-        .movie-card img {
-            width: 100%;
-            height: 330px;
-            object-fit: cover;
-        }
-
-        .movie-card-info {
-            padding: 15px;
-        }
-
-        .movie-card h3 {
-            font-size: 1rem;
-            margin: 0 0 10px 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .rating {
-            display: inline-block;
-            background: #333;
-            padding: 5px 10px;
-            border-radius: 5px;
-            color: gold;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <div class="logo">CINEPHILE</div>
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="චිත්‍රපටයක නම ඇතුළත් කරන්න...">
-            <button onclick="searchMovies()">සොයන්න</button>
-        </div>
-    </header>
-
-    <div class="container">
-        <h2 id="heading">ජනප්‍රිය චිත්‍රපට</h2>
-        <div id="movieGrid" class="movie-grid">
-            <p>චිත්‍රපට පූරණය වෙමින් පවතී (Loading)...</p>
-        </div>
-    </div>
-
-    <script>
-        /* JavaScript කොටස - API සම්බන්ධ කිරීම */
-        
-        // 🚨 ඔබේ TMDB API Key එක මෙහි ඇතුළත් කරන්න 🚨
-        const API_KEY = '58d21bb219448b8bbd868e6440bf49f9'; 
-        const BASE_URL = 'https://api.themoviedb.org/3';
-        const IMG_URL = 'https://image.tmdb.org/t/p/w500';
-
-        // වෙබ් අඩවිය Load වූ විගස ක්‍රියාත්මක වේ
-        window.onload = () => {
-            if(API_KEY === '58d21bb219448b8bbd868e6440bf49f9') {
-                document.getElementById('movieGrid').innerHTML = "<h3 style='color:orange;'>කරුණාකර API Key එක ඇතුළත් කරන්න.</h3>";
-                return;
-            }
-            getMovies(`${BASE_URL}/discover/movie?sort_by=popularity.desc&api_key=${API_KEY}`);
-        };
-
-        async function getMovies(url) {
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
-                if(data.results.length > 0) {
-                    showMovies(data.results);
-                } else {
-                    document.getElementById('movieGrid').innerHTML = "<h3>කිසිදු චිත්‍රපටයක් හමු වූයේ නැත.</h3>";
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
-        }
-
-        function showMovies(movies) {
-            const movieGrid = document.getElementById('movieGrid');
-            movieGrid.innerHTML = '';
-
-            movies.forEach(movie => {
-                const { title, poster_path, vote_average, release_date } = movie;
-                const movieEl = document.createElement('div');
-                movieEl.classList.add('movie-card');
-
-                movieEl.innerHTML = `
-                    <img src="${poster_path ? IMG_URL + poster_path : 'https://via.placeholder.com/500x750?text=No+Image'}" alt="${title}">
-                    <div class="movie-card-info">
-                        <h3>${title}</h3>
-                        <div class="rating">⭐ ${vote_average}</div>
-                        <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">${release_date}</p>
-                    </div>
-                `;
-                movieGrid.appendChild(movieEl);
-            });
-        }
-
-        function searchMovies() {
-            const searchTerm = document.getElementById('searchInput').value;
-            if(searchTerm && searchTerm.trim() !== "") {
-                document.getElementById('heading').innerText = `"${searchTerm}" සඳහා ප්‍රතිඵල...`;
-                getMovies(`${BASE_URL}/search/movie?api_key=${API_KEY}&query=${searchTerm}`);
-            }
-        }
-
-        // Enter Key එක එබූ විට සෙවීමට
-        document.getElementById('searchInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                searchMovies();
-            }
-        });
-    </script>
-</body>
-  </html>
+        function openModal(m) {
+            currentID = m.id;
+            const title = m.title || m.name;
+            document.getElementById('modalHeader').innerHTML = `
+                <h2 style="color:var(--primary); margin:
